@@ -91,7 +91,7 @@ function run() {
   displayResults('#output-grade', inputGradeToKanji, null, function(d) {
     var heading = "Grade " + d;
     if (d === "undefined") {
-      heading = "Non-joyo";
+      heading = "Non-jōyō";
     } else if (d === "S") {
       heading = "Secondary school";
     }
