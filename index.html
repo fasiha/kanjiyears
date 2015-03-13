@@ -2,17 +2,52 @@
 <html>
   <head>
     <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>Kanji by the year</title>
+
+    <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css">
+    <!--[if lte IE 8]>
+        <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/grids-responsive-old-ie-min.css">
+    <![endif]-->
+    <!--[if gt IE 8]><!-->
+        <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/grids-responsive-min.css">
+    <!--<![endif]-->
     <style>
 
-      * {
+      html, button, input, select, textarea, .pure-g [class *= "pure-u"] {
+      /* Set your content font stack here: */
       font-size: 1.1em;
-      font-family: Helvetica, "Helvetica Neue", Arial, Meiryo, "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", Osaka, "メイリオ", "ＭＳ Ｐゴシック", "MS PGothic", "小塚明朝 Pro L", serif;
+      font-family: Meiryo, "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", Osaka, "メイリオ", "ＭＳ Ｐゴシック", "MS PGothic", "小塚明朝 Pro L", serif;
+      line-height: 1.6;
+      }
+
+      body {
+      margin-top: 1em;
+      margin: 1ex;
+      }
+
+      form.form-box {
+      max-width: 50em;
+      margin: 0px auto;
+      }
+
+      div#output {
+      color: rgb(45,45,45);
+      }
+
+      p.output-title {
+      font-size: 125%;
+      font-weight: bold;
+      color: rgb(80,80,80);
+      margin-top: 1em;
+      margin-bottom: .25em;
       }
 
 
-      textarea {
-      width: 100%;
+      div.data-box{
+      margin-right: 1em;
+      margin-bottom: 1em;
       }
 
     </style>
@@ -20,17 +55,22 @@
     <script src="lodash.min.js" charset="utf-8"></script>
     <script src="xregexp-all.js" charset="utf-8"></script>
   </head>
-  <body>
+  <body class="skinny">
 
- <textarea type="text" rows="3" id="input-japanese">おはようございます。私は日本語を習っています。日本語大好き！</textarea><button id="submit-button">Run</button>
+    <form class="pure-form form-box" onsubmit="return false;" id="input-form">
+      <textarea type="text" class="pure-input-1" rows="3" id="input-japanese">おはようございます。私は日本語を習っています。日本語大好き！</textarea>
+      <button class="pure-button" id="submit-button">Run</button>
+    </form>
 
- <div id="output">
-   <div id="output-grade">
-     <h1>Kanji per grades</h1>
+<div class="pure-g" id="output">
+   <div id="output-grade" class="pure-u-1 pure-u-md-1-2">
+     <p class="output-title">Kanji per grades</p>
+     <div id="output-grade-contents"></div>
    </div>
 
-   <div id="output-kanken">
-     <h1>Secondary and non-jōyō kanji further broken down by kanken</h1>
+   <div id="output-kanken" class="pure-u-1 pure-u-md-1-2">
+     <p class="output-title">Secondary and non-jōyō kanji further broken down by kanken</p>
+     <div id="output-kanken-contents"></div>
    </div>
  </div>
 

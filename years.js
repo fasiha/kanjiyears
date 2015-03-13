@@ -22,18 +22,19 @@ var hanRegexp = XRegExp('\\p{Han}', 'g');
 
 // Grab Wikipedia's joyo kanji table and extract relevant columns. `kanjiToGrade` is an
 // object with keys as kanji and values as the grade (as a string).
-var kanjiToGrade;
+var kanjiToGrade, gradeToKanji;
 getOnline('wiki.json').then(function(json) {
   json = JSON.parse(json);
   kanjiToGrade = _.object(_.pluck(json, 'New'), _.pluck(json, 'Grade'));
+  gradeToKanji = _.invert(kanjiToGrade, true);
 });
 
-// From Kajikun: object with kanji as keys and kanken as values.
-var kanjiToKanken;
+// From Kajikun: objects mapping kanji to kanken and vice versa.
+var kanjiToKanken, kankenToKanji;
 getOnline('kanken.json').then(function(json) {
-  json = JSON.parse(json);
-  kanjiToKanken = _.object(_.flatten(_.map(json, function(kanjis, kanken) {
-    return kanjis.split('').map(function(kanji) { return [ kanji, kanken ]; });
+  kankenToKanji = _.mapValues(JSON.parse(json), function(s) { return s.split(''); });
+  kanjiToKanken = _.object(_.flatten(_.map(kankenToKanji, function(kanjis, kanken) {
+    return kanjis.map(function(kanji) { return [ kanji, kanken ]; });
   })));
 });
 
@@ -73,22 +74,36 @@ function run() {
   // - hashKeysArray: if falsey, _.keys(hash), otherwise, an array of `hash`'s keys
   // - headingFunction: function that accepts an element of hashKeysArray (a string) and
   //     returns a new string titling the kanji group
-  function displayResults(domSelectionName, hash, hashKeysArray, headingFunction) {
+  function displayResults(domSelectionName, hash, hashKeysArray, headingFunction,
+                          completeHash) {
+    // Clear old display
+    d3.select(domSelectionName).html('');
+
     return d3.select(domSelectionName)
-        .append('ul')
-        .selectAll('li')
+        .selectAll('div')
         .data(hashKeysArray ? hashKeysArray : _.keys(hash))
         .enter()
-        .append('li')
-        .text(function(d, i) {
+        .append('div')
+        .classed('data-box', true)
+        .html(function(d, i) {
       var kanjis = hash[d];
       var heading = headingFunction(d);
-      return heading + ' (' + kanjis.length + ' kanji): ' + kanjis.join('');
+      var summary = '' + kanjis.length + ' kanji';
+      var missing = '';
+      if (completeHash && completeHash[d]) {
+        var percentPormatter = d3.format('2.2p');
+        summary +=
+            ', ' + percentPormatter(kanjis.length / completeHash[d].length) + ' coverage';
+        missing = 'Missing kanji:<br>';
+        missing += _.difference(completeHash[d], kanjis).join('');
+      }
+      return heading + '<br>' + summary + '<br>' + kanjis.join('') +
+             (missing ? '<br>' + missing : '');
     });
   }
 
   // Display by grade
-  displayResults('#output-grade', inputGradeToKanji, null, function(d) {
+  displayResults('#output-grade-contents', inputGradeToKanji, null, function(d) {
     var heading = "Grade " + d;
     if (d === "undefined") {
       heading = "Non-jōyō";
@@ -96,11 +111,13 @@ function run() {
       heading = "Secondary school";
     }
     return heading;
-  });
+  }, gradeToKanji);
 
   // Display non-joyo and secondary school kanji by kanken
   displayResults(
-      '#output-kanken', kankenToRareKanji,
+      '#output-kanken-contents', kankenToRareKanji,
       _.sortBy(_.keys(kankenToRareKanji), function(x) { return x ? -x : NaN; }),
-      function(d) { return d !== 'undefined' ? 'Kanken ' + d : 'Non-kanken'; });
+      function(d) { return d !== 'undefined' ? 'Kanken ' + d : 'Non-kanken'; },
+      kankenToKanji);
+
 }
