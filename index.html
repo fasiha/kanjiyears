@@ -14,13 +14,14 @@
         <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/grids-responsive-min.css">
     <!--<![endif]-->
     <style>
-
       html, button, input, select, textarea, .pure-g [class *= "pure-u"] {
       /* Set your content font stack here: */
-      font-size: 1.1em;
+      font-size: 1.0em;
       font-family: Meiryo, "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", Osaka, "メイリオ", "ＭＳ Ｐゴシック", "MS PGothic", "小塚明朝 Pro L", serif;
       line-height: 1.6;
       }
+
+      #ruler { visibility: hidden; white-space: nowrap; }
 
       body {
       margin-top: 1em;
@@ -56,9 +57,23 @@
 
       }
 
-      p.kanji-group-heading span {
-      font-size: 60%;
+      p.kanji-group-heading span.sidebar {
+      font-size: 80%;
+      color: rgb(85,85,85);
       }
+
+      .missing-kanji{
+      color: rgb(85,85,85);
+      }
+
+      .used-kanji {
+      font-size: 150%
+      }
+
+      .hidden {
+      display: none;
+      }
+
 
     </style>
     <script src="d3.v3.min.js" charset="utf-8"></script>
@@ -84,6 +99,8 @@
    </div>
  </div>
 
-      <script src="years.js" charset="utf-8"></script>
+<span id="ruler">一</span>
+
+<script src="years.js" charset="utf-8"></script>
   </body>
 </html>
