@@ -79,27 +79,30 @@ function run() {
     // Clear old display
     d3.select(domSelectionName).html('');
 
-    return d3.select(domSelectionName)
-        .selectAll('div')
-        .data(hashKeysArray ? hashKeysArray : _.keys(hash))
-        .enter()
-        .append('div')
-        .classed('data-box', true)
+    var percentPormatter = d3.format('2.2p');
+
+    var divs = d3.select(domSelectionName)
+                   .selectAll('div')
+                   .data(hashKeysArray ? hashKeysArray : _.keys(hash))
+                   .enter()
+                   .append('div')
+                   .classed('data-box', true);
+    divs.append('p')
+        .html(function(d, i) { return headingFunction(d); })
+        .classed('kanji-group-heading', true)
+        .append('span')
         .html(function(d, i) {
-      var kanjis = hash[d];
-      var heading = headingFunction(d);
-      var summary = '' + kanjis.length + ' kanji';
-      var missing = '';
-      if (completeHash && completeHash[d]) {
-        var percentPormatter = d3.format('2.2p');
-        summary +=
-            ', ' + percentPormatter(kanjis.length / completeHash[d].length) + ' coverage';
-        missing = 'Missing kanji:<br>';
-        missing += _.difference(completeHash[d], kanjis).join('');
-      }
-      return heading + '<br>' + summary + '<br>' + kanjis.join('') +
-             (missing ? '<br>' + missing : '');
+      return '&rarr;' + hash[d].length + ' kanji' +
+             (completeHash && completeHash[d]
+                  ? ', ' + percentPormatter(hash[d].length / completeHash[d].length) +
+                        ' coverage'
+                  : '');
     });
+    divs.append('p').html(function(d, i) { return hash[d].join(''); });
+    divs.append('p').html(function(d, i) {
+      return 'Missing kanji: ' + _.difference(completeHash[d], hash[d]).join('');
+    }).classed('missing-kanji');
+    return divs;
   }
 
   // Display by grade
@@ -119,5 +122,4 @@ function run() {
       _.sortBy(_.keys(kankenToRareKanji), function(x) { return x ? -x : NaN; }),
       function(d) { return d !== 'undefined' ? 'Kanken ' + d : 'Non-kanken'; },
       kankenToKanji);
-
 }
