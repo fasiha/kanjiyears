@@ -1,4 +1,6 @@
+///////////////////////////////////////////////////////////////////////////////
 // Libraries loaded externally
+///////////////////////////////////////////////////////////////////////////////
 var d3, XRegExp, _;
 
 // Promise-based helper function to get the plaintext contents of URLs
@@ -14,15 +16,11 @@ function getOnline(url) {
   });
 }
 
-// Regular expression to capture all Chinese characters, via XRegExp
-var hanRegexp = XRegExp('\\p{Han}', 'g');
+///////////////////////////////////////////////////////////////////////////////
+// Setup and globals
+///////////////////////////////////////////////////////////////////////////////
 
-// Display percentages with two significant digits
-var percentFormatter = d3.format('2.2p');
-
-// Setup
-
-// From Kajikun: objects mapping kanji to kanken and vice versa.
+// Async data load: from Kajikun: objects mapping kanji to kanken and vice versa.
 var kanjiToKanken, kankenToKanji, joyoKanji;
 getOnline('kanken.json').then(function(json) {
   kankenToKanji = _.mapValues(JSON.parse(json), function(s) { return s.split(''); });
@@ -31,6 +29,12 @@ getOnline('kanken.json').then(function(json) {
   })));
   joyoKanji = _.flatten(_.values(kankenToKanji));
 });
+
+// Regular expression to capture all Chinese characters, via XRegExp
+var hanRegexp = XRegExp('\\p{Han}', 'g');
+
+// Display percentages with two significant digits
+var percentFormatter = d3.format('2.2p');
 
 // From Kanken.or.jp, colors: http://www.kanken.or.jp/kanken/outline/degree.html
 var KANKENCOLORS = {
@@ -48,8 +52,12 @@ var KANKENCOLORS = {
   10 : "#E00083"
 };
 
-// Business logic: returns an object whose keys are kanken levels (or "undefined"), and
-// values an object representing associated kanji ("undefined" --> non-joyo kanji).
+///////////////////////////////////////////////////////////////////////////////
+// Business logic
+///////////////////////////////////////////////////////////////////////////////
+
+// Returns an object whose keys are kanken levels (or "undefined"), and values an object
+// representing associated kanji ("undefined" --> non-joyo kanji).
 function analyzeKanken(inputString) {
   if (kanjiToKanken === undefined) {
     console.log('Data not yet loaded. Returning empty.');
@@ -81,15 +89,21 @@ function analyzeKanken(inputString) {
     numKanjiUsed : nonJoyo.length,
     kanjiMissing : [],
     numKanjiMissing : 0,
-    color : d3.hcl("#ffffff"),
+    color : d3.hcl("#222"),
     numTotal : nonJoyo.length
   };
   return inputToKankenObj;
 }
 
-// DOM functionality: attach event listener
+///////////////////////////////////////////////////////////////////////////////
+// Display logic
+///////////////////////////////////////////////////////////////////////////////
+
+// Attach event listener to the following run() function
 d3.select("#submit-button").on('click', run);
 
+// Reads input from the DOM, processes it using business logic above, and writes to the
+// DOM
 function run() {
   // Get input string and process it, producing a hash with keys as kanken levels and
   // values as a hash of details
@@ -109,27 +123,38 @@ function run() {
   // Clear the old output data and start writing!
   d3.select('#output').html('');
 
-  // First, some semi-fancy stats.
-  var kankenLevels = _.sortBy(_.keys(kankenToKanji), function(x) { return -x; });
+  // First, some semi-fancy stats: semi-filled boxes with links.
+
+  // null (non-joyo) will map to the end of this list, luckily.
+  var kankenLevels = _.sortBy(_.keys(inputAnalysis), function(x) { return -x; });
+
+  // The stats container and heading
+  var stats = d3.select('#output').append('div').classed('pure-u-1', true);
+  stats.append('p').classed('output-title', true).text('Statistics');
+  // The stats boxes for each kanken level
   var boxes =
-      d3.select('#output')
-          .append('div')
-          .classed('pure-u-1', true)
-          .selectAll('div')
+      stats.selectAll('div')
           .data(kankenLevels.map(function(k) { return inputAnalysis[k]; }))
           .enter()
+          .append('a')
+          .attr('href', function(d, i) {
+            return '#' + (d.kanken ? 'kanken-' + d.kanken : 'non-joyo');
+          })
           .append('div')
           .classed('stat-outer-box', true)
           .style('background', function(d) { return d.color.brighter(1.25).toString(); });
 
   boxes.append('div')
       .classed('stat-inner-box', true)
-      .style('height',
-             function(d, i) { return (100 * d.numKanjiUsed / d.numTotal + '%'); })
+      .style('height', function(d, i) {
+        var tentative = 100 * d.numKanjiUsed / d.numTotal;
+        return tentative !== null ? tentative + '%' : '100%';
+      })
       .style('background', function(d) { return d.color.toString(); })
       .style('color', function(d) { return (d.color.l > 70 ? "black" : "white"); })
-      .text(function(d, i) {
-    return 'Kanken ' + d.kanken + ' ' + d.numKanjiUsed + '/' + d.numTotal;
+      .html(function(d, i) {
+    return (d.kanken ? 'Kanken ' + d.kanken : 'Non-jōyō') + '<br>' + d.numKanjiUsed +
+           (d.numKanjiMissing ? '/' + d.numTotal : '');
   });
 
   // Next, call a display helper function for the three groupings: primary school,
@@ -154,6 +179,7 @@ function run() {
       twoCol = true;
     }
 
+    // If there are NO kanken levels present in this group, don't draw anything.
     if (!_.any(_.pluck(groups, 'numKanjiUsed'))) {
       return [];
     }
@@ -165,15 +191,18 @@ function run() {
         'pure-u-md-1-2', twoCol);
     parent.append('p').classed('output-title', true).text(title);
 
-    // Create a div for each element of `group` (a single kanken level).
+    // Create a div for each element of `group`, i.e., each kanken level.
     var divs = parent.selectAll('div')
                    .data(groups)
                    .enter()
                    .append('div')
                    .attr('class', function(d, i) { return 'kanken-' + d.kanken; })
                    .classed('data-box', true)
-                   .style("border-color",
-                          function(d, i) { return KANKENCOLORS[d.kanken] || "white"; });
+                   .style("border-color", function(d, i) { return d.color; });
+
+    // Place an anchor to this kanken level
+    divs.append('a').attr(
+        'name', function(d, i) { return d.kanken ? 'kanken-' + d.kanken : 'non-joyo'; });
 
     // Append heading and some coverage information in a smaller font
     divs.append('p')
@@ -189,7 +218,7 @@ function run() {
         .html(function(d, i) {
       return ' &rarr; ' + d.numKanjiUsed + ' kanji ' +
              (d.numKanjiMissing
-                  ? percentFormatter(d.numKanjiUsed / d.numKanjiMissing) + ' coverage'
+                  ? percentFormatter(d.numKanjiUsed / d.numTotal) + ' coverage'
                   : '');
     }).classed('sidebar', true);
 
@@ -220,19 +249,21 @@ function run() {
           self.classed('linkable', false);
         });
 
-    // A button that'll show all the hidden content (and then deletes itself). This might
-    // be foolishly shown when there's no hidden content, so FIXME.
-    parent.append('button')
-        .classed('pure-button show-all-button', true)
-        .html('Show all missing kanji')
-        .on('click', function() {
-          d3.selectAll('.hidden').classed('hidden', false);
-          d3.selectAll('.ellipses').remove();
-          d3.selectAll('.show-all-button').remove();
-        });
+    // A button that'll show all the hidden content (and then deletes itself).
+    if (_.any(_.pluck(groups, 'numKanjiMissing'))) {
+      parent.append('button')
+          .classed('pure-button show-all-button', true)
+          .html('Show all missing kanji')
+          .on('click', function() {
+            d3.selectAll('.hidden').classed('hidden', false);
+            d3.selectAll('.ellipses').remove();
+            d3.selectAll('.show-all-button').remove();
+          });
+    }
 
     return divs;
   }
 }
 
+// Helper function to calculate how many pixels wide a kanji is currently being rendered
 function ichiWidth() { return d3.select('#ruler').node().getBoundingClientRect().width; }
