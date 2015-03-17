@@ -47,6 +47,11 @@
       div.data-box{
       margin-right: 1em;
       margin-bottom: 1em;
+      padding:0.5em;
+
+      border-left: 0.5em solid;
+      border-radius: 0.5em;
+      background: rgb(250,250,250);
       }
 
       div.data-box p {
@@ -66,6 +71,10 @@
       color: rgb(85,85,85);
       }
 
+      .linkable {
+      cursor: pointer;
+      }
+
       .used-kanji {
       font-size: 150%
       }
@@ -74,7 +83,19 @@
       display: none;
       }
 
+      div.outer-box {
+      background: aliceblue;
+      display: inline-block;
+      width: 6em;
+      height: 6em;
+      margin: 0.5em;
+      color: white;
+      }
 
+      div.inner-box {
+      width: 100%;
+      text-align: center;
+      }
     </style>
     <script src="d3.v3.min.js" charset="utf-8"></script>
     <script src="lodash.min.js" charset="utf-8"></script>
@@ -88,6 +109,12 @@
     </form>
 
 <div class="pure-g" id="output">
+
+   <div id="stats" class="pure-u-1">
+     <p class="output-title">Statistics</p>
+     <div id="stats-output"></div>
+   </div>
+
    <div id="output-grade" class="pure-u-1 pure-u-md-1-2">
      <p class="output-title">Kanji per grades</p>
      <div id="output-grade-contents"></div>
