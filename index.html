@@ -97,6 +97,19 @@
       text-align: center;
       }
 
+      #footer {
+      text-align: center;
+      font-size: 75%;
+      margin-top: 2em;
+      }
+
+      #footer p {
+      margin: 0;
+      }
+
+      #footer p a {
+      color: rgb(45,45,45);
+      }
     </style>
     <script src="d3.v3.min.js" charset="utf-8"></script>
     <script src="lodash.min.js" charset="utf-8"></script>
@@ -110,11 +123,15 @@
       <button class="pure-button" id="submit-button">Run</button>
     </form>
 
-<div class="pure-g" id="output">
- </div>
+    <div class="pure-g" id="output">
+    </div>
 
-<span id="ruler">一</span>
+    <div id="footer"><p>Kanjiyears visualizes a text's kanji per Japanese school years.</p>
 
-<script src="years.js" charset="utf-8"></script>
+    <p><a href="https://github.com/fasiha/kanjiyears">Source code in public domain</a>.</p></div>
+
+    <span id="ruler">一</span>
+
+    <script src="years.js" charset="utf-8"></script>
   </body>
 </html>
