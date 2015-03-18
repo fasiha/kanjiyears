@@ -148,7 +148,7 @@ function run() {
       .classed('stat-inner-box', true)
       .style('height', function(d, i) {
         var tentative = 100 * d.numKanjiUsed / d.numTotal;
-        return tentative !== null ? tentative + '%' : '100%';
+        return isNaN(tentative) ? '100%' : tentative + '%';
       })
       .style('background', function(d) { return d.color.toString(); })
       .style('color', function(d) { return (d.color.l > 70 ? "black" : "white"); })
